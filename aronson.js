@@ -234,6 +234,7 @@ function promptUserForCard(lower = false) {
   let correctAnswers = 0;
   let totalQuestions = shuffledKeys.length;
   let failures = [];
+  const startTime = Date.now();
 
   function askQuestion() {
     if (currentIndex < shuffledKeys.length) {
@@ -345,6 +346,7 @@ function promptUserForFullDeckWords() {
   let correctAnswers = 0;
   let totalQuestions = shuffledKeys.length;
   let failures = [];
+  const startTime = Date.now();
 
   function askQuestion() {
     if (currentIndex < shuffledKeys.length) {
@@ -462,7 +464,8 @@ function convertToTime(time) {
 
 
 // printFullDeckWordsRandom();
-// promptUserForNumber();
-// promptUserForCard();
+
+// promptUserForNumber(true);
+promptUserForCard();
 // promptUserForFullDeckWords();
 // promptUserForAronsonDeck();
