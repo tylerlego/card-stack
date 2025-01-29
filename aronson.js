@@ -1,4 +1,5 @@
 const readline = require('readline');
+const process = require('process');
 
 // Data objects
 const numWords = {
@@ -334,14 +335,18 @@ function promptUserForNumber(lower = false) {
   askQuestion();
 }
 
-function promptUserForFullDeckWords() {
+function promptUserForFullDeckWords(random = false) {
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
   });
 
   const keys = Object.keys(fullDeckWords);
-  let shuffledKeys = keys.sort(() => Math.random() - 0.5);
+  let shuffledKeys = keys;
+  if (random) {
+    shuffledKeys = keys.sort(() => Math.random() - 0.5);
+  } 
+
   let currentIndex = 0;
   let correctAnswers = 0;
   let totalQuestions = shuffledKeys.length;
@@ -354,7 +359,7 @@ function promptUserForFullDeckWords() {
       let randomWordPair = fullDeckWords[randomKey];
 
       rl.question(`Which card and position does the word pair "${randomWordPair}" belong to? `, (answer) => {
-        if (answer === randomKey) {
+        if (answer.toUpperCase() === randomKey) {
           console.log('Success! You got it right.');
           correctAnswers++;
         } else {
@@ -466,6 +471,6 @@ function convertToTime(time) {
 // printFullDeckWordsRandom();
 
 // promptUserForNumber(true);
-promptUserForCard();
-// promptUserForFullDeckWords();
+// promptUserForCard(true);
+// promptUserForFullDeckWords(true);
 // promptUserForAronsonDeck();
