@@ -1,5 +1,6 @@
 const readline = require('readline');
 const process = require('process');
+const { convertToTime } = require('./utils');
 
 // Data objects
 const numWords = {
@@ -54,7 +55,7 @@ const numWords = {
   49: 'RoPe',
   50: 'LaSSo',
   51: 'LuTe',
-  52: 'LioN'
+  52: 'LiNe'
 }
 
 const cardWords = {
@@ -80,7 +81,7 @@ const cardWords = {
   '7H': 'HoG',
   '8H': 'HiVe',
   '9H': 'HiPPo',
-  '10H': 'HoSe',
+  '10H': 'HouSe',
   'JH': 'Heart',
   'QH': 'Queen',
   'KH': 'Hinge',
@@ -150,7 +151,7 @@ const fullDeckWords = {
   "35-10C": "mule-case",
   "36-JD": "match-diamond",
   "37-4S": "mug-sore",
-  "38-10H": "movie-hose",
+  "38-10H": "movie-house",
   "39-6H": "mop-hash",
   "40-3C": "rose-come",
   "41-2S": "rod-swan",
@@ -164,7 +165,7 @@ const fullDeckWords = {
   "49-6D": "rope-douche",
   "50-QC": "lasso-cream",
   "51-2C": "lute-cane",
-  "52-9D": "lion-dope"
+  "52-9D": "line-dope"
 }
 
 const aronsonDeck = {
@@ -223,6 +224,65 @@ const aronsonDeck = {
 };
 
 // Test methods
+function promptUserForNumber(lower = false, guessKey = true) {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  const keys = Object.keys(numWords);
+  let shuffledKeys = keys.sort(() => Math.random() - 0.5);
+  let currentIndex = 0;
+  let correctAnswers = 0;
+  let totalQuestions = shuffledKeys.length;
+  let failures = [];
+  const startTime = Date.now();
+
+  function askQuestion() {
+    if (currentIndex < shuffledKeys.length) {
+      const randomKey = shuffledKeys[currentIndex];
+      let randomWord = numWords[randomKey];
+
+      if (lower) {
+        randomWord = randomWord.toLowerCase();
+      }
+
+      const question = guessKey ? `Which number does the word "${randomWord}" belong to? ` : `Which word belongs to the number "${randomKey}"? `;
+      const correctAnswer = guessKey ? randomKey : randomWord;
+
+      rl.question(question, (answer) => {
+        if (answer.toLowerCase() === correctAnswer.toLowerCase()) {
+          console.log('Success! You got it right.');
+          correctAnswers++;
+        } else {
+          console.log(`Fail! The correct answer was ${correctAnswer}.`);
+          failures.push({ question, correctAnswer, userAnswer: answer });
+        }
+        currentIndex++;
+        askQuestion();
+      });
+    } else {
+      const endTime = Date.now();
+      const timeTakenFormatted = convertToTime(endTime - startTime);
+      console.log('----------------------------------------');
+      console.log('You have gone through all the numbers.');
+      const successPercentage = (correctAnswers / totalQuestions) * 100;
+      console.log(`Time taken: ${timeTakenFormatted}`);
+      console.log(`Success percentage: ${successPercentage.toFixed(2)}%`);
+      if (failures.length > 0) {
+        console.log('Failures:');
+        failures.forEach(failure => {
+          console.log(`Question: ${failure.question}, Correct Answer: ${failure.correctAnswer}, Your Answer: ${failure.userAnswer}`);
+        });
+      }
+      console.log('----------------------------------------');
+      rl.close();
+    }
+  }
+
+  askQuestion();
+}
+
 function promptUserForCard(lower = false) {
   const rl = readline.createInterface({
     input: process.stdin,
@@ -279,63 +339,7 @@ function promptUserForCard(lower = false) {
   askQuestion();
 }
 
-function promptUserForNumber(lower = false) {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-  });
-
-  const keys = Object.keys(numWords);
-  let shuffledKeys = keys.sort(() => Math.random() - 0.5);
-  let currentIndex = 0;
-  let correctAnswers = 0;
-  let totalQuestions = shuffledKeys.length;
-  let failures = [];
-  const startTime = Date.now();
-
-  function askQuestion() {
-    if (currentIndex < shuffledKeys.length) {
-      const randomKey = shuffledKeys[currentIndex];
-      let randomWord = numWords[randomKey];
-
-      if (lower) {
-        randomWord = randomWord.toLowerCase();
-      }
-
-      rl.question(`Which number does the word "${randomWord}" belong to? `, (answer) => {
-        if (answer === randomKey) {
-          console.log('Success! You got it right.');
-          correctAnswers++;
-        } else {
-          console.log(`Fail! The correct answer was ${randomKey}.`);
-          failures.push({ word: randomWord, correctAnswer: randomKey, userAnswer: answer });
-        }
-        currentIndex++;
-        askQuestion();
-      });
-    } else {
-      const endTime = Date.now();
-      const timeTakenFormatted = convertToTime(endTime - startTime);
-      console.log('----------------------------------------');
-      console.log('You have gone through all the numbers.');
-      const successPercentage = (correctAnswers / totalQuestions) * 100;
-      console.log(`Time taken: ${timeTakenFormatted}`);
-      console.log(`Success percentage: ${successPercentage.toFixed(2)}%`);
-      if (failures.length > 0) {
-        console.log('Failures:');
-        failures.forEach(failure => {
-          console.log(`Word: ${failure.word}, Correct Answer: ${failure.correctAnswer}, Your Answer: ${failure.userAnswer}`);
-        });
-      }
-      console.log('----------------------------------------');
-      rl.close();
-    }
-  }
-
-  askQuestion();
-}
-
-function promptUserForFullDeckWords(random = false) {
+function promptUserForFullDeckWords(random = false, guessKey = true) {
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
@@ -358,13 +362,16 @@ function promptUserForFullDeckWords(random = false) {
       const randomKey = shuffledKeys[currentIndex];
       let randomWordPair = fullDeckWords[randomKey];
 
-      rl.question(`Which card and position does the word pair "${randomWordPair}" belong to? `, (answer) => {
-        if (answer.toUpperCase() === randomKey) {
+      const question = guessKey ? `Which card and position does the word pair "${randomWordPair}" belong to? ` : `Which word pair belongs to the card and position "${randomKey}"? `;
+      const correctAnswer = guessKey ? randomKey : randomWordPair;
+
+      rl.question(question, (answer) => {
+        if (answer.toUpperCase() === correctAnswer.toUpperCase()) {
           console.log('Success! You got it right.');
           correctAnswers++;
         } else {
-          console.log(`Fail! The correct answer was ${randomKey}.`);
-          failures.push({ wordPair: randomWordPair, correctAnswer: randomKey, userAnswer: answer });
+          console.log(`Fail! The correct answer was ${correctAnswer}.`);
+          failures.push({ question, correctAnswer, userAnswer: answer });
         }
         currentIndex++;
         askQuestion();
@@ -380,7 +387,7 @@ function promptUserForFullDeckWords(random = false) {
       if (failures.length > 0) {
         console.log('Failures:');
         failures.forEach(failure => {
-          console.log(`Word Pair: ${failure.wordPair}, Correct Answer: ${failure.correctAnswer}, Your Answer: ${failure.userAnswer}`);
+          console.log(`Question: ${failure.question}, Correct Answer: ${failure.correctAnswer}, Your Answer: ${failure.userAnswer}`);
         });
       }
       console.log('----------------------------------------');
@@ -460,17 +467,9 @@ function printFullDeckWordsRandom() {
   });
 }
 
-// Helper methods
-function convertToTime(time) {
-  const minutes = String(Math.floor(time / 60000)).padStart(2, '0');
-  const seconds = String(Math.floor((time % 60000) / 1000)).padStart(2, '0');
-  return `${minutes}:${seconds}`;
-}
-
-
 // printFullDeckWordsRandom();
 
-// promptUserForNumber(true);
+// promptUserForNumber(true, false);
 // promptUserForCard(true);
-// promptUserForFullDeckWords(true);
-// promptUserForAronsonDeck();
+// promptUserForFullDeckWords(true, false);
+promptUserForAronsonDeck();
